@@ -1,0 +1,98 @@
+void serial();
+ void send(unsigned char);
+ unsigned char recieve();
+ void ms_delay(unsigned int);
+ unsigned char result;
+ unsigned char k;
+ unsigned int j;
+ unsigned int dis;
+ unsigned int distance;
+ 
+ void InitTimer10us() {
+    OPTION_REG = 0x88;// option reg el mafrood tkoon 0x80 (??) 0x88
+    TMR0 = 236;
+    INTCON = 0xA0;
+}
+ 
+ void Interrupt() {
+    if ((INTCON & 0x04)) {//if timer0 has overflown(interrupted)
+        INTCON =INTCON & 0xfb;// Khali intcon register kolha 0 (sheel el flag ta3 timer 0 interrupt)
+        flag = 0;
+    }
+}
+ 
+ void ultra() {
+    distance = 0;
+    T1CON = 0x10;
+
+
+        TMR1H = 0;
+        TMR1L = 0;
+        PORTC =PORTC | 0x02;
+        InitTimer10us();
+        while (!INTCON & 0x04);
+        PORTC =PORTC & 0xfd;
+        while (!(PORTC & 0x01));
+        T1CON =T1CON | 0x01;// beshaghel timer 1
+        while (PORTC & 0x01);
+        T1CON =T1CON & 0xfe;
+        distance = (TMR1L | (TMR1H << 8));
+        distance = distance / 58.82;
+        distance = distance + 1;
+
+}
+
+ void main(void)
+ {
+ TRISD=0x00;  // all as output
+ TRISC=0xC1;  //tx=1,rx=1  , ECHO INPUT
+ PORTD=0;
+ serial();
+
+ while(1){
+     result=recieve();
+     send(result);
+     if(result == 'F')
+     { //FORWARD
+     PORTD=0X06;
+     ultra();
+     dis=distance;
+      if(dis<20){
+      PORTD=0X00;}
+     }
+     else if(result == 'B')
+     { //BACKWARDS
+     PORTD=0X09;
+     }
+     else if(result == 'R')
+     { // right
+     PORTD=0X04;
+     }
+     else if(result == 'L')
+     { // LEFT
+     PORTD=0X02;
+     } else if(result == 'S')
+     { //stop
+     PORTD=0X00;
+     }
+ }
+ }
+
+ void serial(){
+ TXSTA = 0x20; //Asynchronous mode, Low power BRGH=0, 8-bit selection
+ RCSTA = 0x90; // Serial port enable, continous recieve enabled, 8-bit selection
+ SPBRG= 12; //Low power,, 9600 baudrate
+ TXIF_bit=RCIF_bit= 0;
+}
+
+void send(unsigned char tx) {
+ TXREG= tx;
+ while (!TXIF);
+ PIR1= PIR1 & 0xEF; //TXIF_bit=0;
+}
+
+unsigned char recieve(){
+     while(!RCIF);
+     PIR1= PIR1 & 0xDF;  //RCIF_bit=0;
+     return RCREG;
+}
