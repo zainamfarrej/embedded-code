@@ -11,14 +11,14 @@ void serial();
  
  
  void InitTimer10us() {
-    OPTION_REG = 0x88;// option reg el mafrood tkoon 0x80 (??) 0x88
+    OPTION_REG = 0x88;
     TMR0 = 236;
     INTCON = 0xA0;
 }
  
  void Interrupt() {
     if ((INTCON & 0x04)) {//if timer0 has overflown(interrupted)
-        INTCON =INTCON & 0xfb;// Khali intcon register kolha 0 (sheel el flag ta3 timer 0 interrupt)
+        INTCON =INTCON & 0xfb;
         flag = 0;
     }
 }
@@ -35,7 +35,7 @@ void serial();
         while (!INTCON & 0x04);
         PORTC =PORTC & 0xfd;
         while (!(PORTC & 0x01));
-        T1CON =T1CON | 0x01;// beshaghel timer 1
+        T1CON =T1CON | 0x01;// enables timer1
         while (PORTC & 0x01);
         T1CON =T1CON & 0xfe;
         distance = (TMR1L | (TMR1H << 8));
