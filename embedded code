@@ -7,6 +7,8 @@ void serial();
  unsigned int j;
  unsigned int dis;
  unsigned int distance;
+ unsigned int flag;
+ 
  
  void InitTimer10us() {
     OPTION_REG = 0x88;// option reg el mafrood tkoon 0x80 (??) 0x88
